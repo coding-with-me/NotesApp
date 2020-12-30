@@ -10,11 +10,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.codingwithme.notesapp.R
 import com.codingwithme.notesapp.entities.Notes
 import kotlinx.android.synthetic.main.item_rv_notes.view.*
+import java.util.*
+import kotlin.collections.ArrayList
 
-class NotesAdapter(val arrList: List<Notes>) :
+class NotesAdapter() :
     RecyclerView.Adapter<NotesAdapter.NotesViewHolder>() {
-
-
+    var listener:OnItemClickListener? = null
+    var arrList = ArrayList<Notes>()
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotesViewHolder {
         return NotesViewHolder(
             LayoutInflater.from(parent.context).inflate(R.layout.item_rv_notes,parent,false)
@@ -23,6 +25,14 @@ class NotesAdapter(val arrList: List<Notes>) :
 
     override fun getItemCount(): Int {
         return arrList.size
+    }
+
+    fun setData(arrNotesList: List<Notes>){
+        arrList = arrNotesList as ArrayList<Notes>
+    }
+
+    fun setOnClickListener(listener1: OnItemClickListener){
+        listener = listener1
     }
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
@@ -44,11 +54,15 @@ class NotesAdapter(val arrList: List<Notes>) :
             holder.itemView.imgNote.visibility = View.GONE
         }
 
-        if (arrList[position].webLink != null){
+        if (arrList[position].webLink != ""){
             holder.itemView.tvWebLink.text = arrList[position].webLink
             holder.itemView.tvWebLink.visibility = View.VISIBLE
         }else{
             holder.itemView.tvWebLink.visibility = View.GONE
+        }
+
+        holder.itemView.cardView.setOnClickListener {
+            listener!!.onClicked(arrList[position].id!!)
         }
 
     }
@@ -56,4 +70,10 @@ class NotesAdapter(val arrList: List<Notes>) :
     class NotesViewHolder(view:View) : RecyclerView.ViewHolder(view){
 
     }
+
+
+    interface OnItemClickListener{
+        fun onClicked(noteId:Int)
+    }
+
 }

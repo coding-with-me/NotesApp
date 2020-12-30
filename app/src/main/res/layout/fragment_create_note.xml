@@ -105,15 +105,37 @@
             android:textSize="@dimen/_10ssp" />
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/imgNote"
+    <RelativeLayout
+        android:id="@+id/layoutImage"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_300sdp"
+        android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_marginStart="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:layout_marginEnd="@dimen/_10sdp"
-        app:layout_constraintTop_toBottomOf="@id/l1" />
+        app:layout_constraintTop_toBottomOf="@id/l1">
+
+
+
+        <ImageView
+            android:id="@+id/imgNote"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_300sdp"
+            android:visibility="gone"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginEnd="@dimen/_10sdp" />
+
+        <ImageView
+            android:id="@+id/imgDelete"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:layout_marginEnd="@dimen/_15sdp"
+            android:layout_marginTop="@dimen/_20sdp"
+            android:layout_alignParentEnd="true"
+            android:visibility="gone"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/ic_delete" />
+
+
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -125,17 +147,20 @@
         android:visibility="gone"
         android:layout_margin="@dimen/_10sdp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imgNote"
+        app:layout_constraintTop_toBottomOf="@id/layoutImage"
         android:orientation="vertical">
 
-
-
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
         <EditText
             android:id="@+id/etWebLink"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="@null"
-            android:layout_marginBottom="@dimen/_10sdp"
             android:fontFamily="@font/manrope_regular"
             android:hint="@string/web_url"
             android:inputType="textMultiLine"
@@ -144,11 +169,21 @@
             android:textColor="@color/ColorWhite"
             android:textColorHint="@color/ColorGray"
             android:textSize="@dimen/_12ssp" />
+        <ImageView
+            android:id="@+id/imgUrlDelete"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:visibility="gone"
+            android:src="@drawable/ic_baseline_cancel_24" />
+    </LinearLayout>
+
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:layout_marginTop="@dimen/_10sdp"
             android:gravity="end"
             android:orientation="horizontal">
 

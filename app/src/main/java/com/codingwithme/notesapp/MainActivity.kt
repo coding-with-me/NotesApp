@@ -23,4 +23,12 @@ class MainActivity : AppCompatActivity() {
         }
         fragmentTransition.add(R.id.frame_layout,fragment).addToBackStack(fragment.javaClass.simpleName).commit()
     }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        val fragments = supportFragmentManager.fragments
+        if (fragments.size == 0){
+            finish()
+        }
+    }
 }

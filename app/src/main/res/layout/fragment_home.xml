@@ -53,6 +53,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:background="@color/colorPrimary"
         android:padding="@dimen/_10sdp"
+        android:visibility="invisible"
         android:orientation="horizontal">
 
         <ImageView

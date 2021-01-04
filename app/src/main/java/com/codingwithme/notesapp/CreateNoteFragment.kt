@@ -30,6 +30,8 @@ import com.codingwithme.notesapp.util.NoteBottomSheetFragment
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import kotlinx.android.synthetic.main.fragment_create_note.*
+import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.item_rv_notes.view.*
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
@@ -45,11 +47,13 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
     private var REQUEST_CODE_IMAGE = 456
     private var selectedImagePath = ""
     private var webLink = ""
+    private var noteId = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-        }
+
+        noteId = requireArguments().getInt("noteId",-1)
+
     }
 
 
@@ -74,6 +78,41 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        if (noteId != -1){
+
+            launch {
+                context?.let {
+                    var notes = NotesDatabase.getDatabase(it).noteDao().getSpecificNote(noteId)
+                    colorView.setBackgroundColor(Color.parseColor(notes.color))
+                    etNoteTitle.setText(notes.title)
+                    etNoteSubTitle.setText(notes.subTitle)
+                    etNoteDesc.setText(notes.noteText)
+                    if (notes.imgPath != ""){
+                        selectedImagePath = notes.imgPath!!
+                        imgNote.setImageBitmap(BitmapFactory.decodeFile(notes.imgPath))
+                        layoutImage.visibility = View.VISIBLE
+                        imgNote.visibility = View.VISIBLE
+                        imgDelete.visibility = View.VISIBLE
+                    }else{
+                        layoutImage.visibility = View.GONE
+                        imgNote.visibility = View.GONE
+                        imgDelete.visibility = View.GONE
+                    }
+
+                    if (notes.webLink != ""){
+                        webLink = notes.webLink!!
+                        tvWebLink.text = notes.webLink
+                        layoutWebUrl.visibility = View.VISIBLE
+                        etWebLink.setText(notes.webLink)
+                        imgUrlDelete.visibility = View.VISIBLE
+                    }else{
+                        imgUrlDelete.visibility = View.GONE
+                        layoutWebUrl.visibility = View.GONE
+                    }
+                }
+            }
+        }
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
             BroadcastReceiver, IntentFilter("bottom_sheet_action")
         )
@@ -86,8 +125,11 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
         tvDateTime.text = currentDate
 
         imgDone.setOnClickListener {
-            //saveNote
-            saveNote()
+            if (noteId != -1){
+                updateNote()
+            }else{
+                saveNote()
+            }
         }
 
         imgBack.setOnClickListener {
@@ -96,8 +138,15 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
 
         imgMore.setOnClickListener{
 
-            var noteBottomSheetFragment = NoteBottomSheetFragment.newInstance()
+
+            var noteBottomSheetFragment = NoteBottomSheetFragment.newInstance(noteId)
             noteBottomSheetFragment.show(requireActivity().supportFragmentManager,"Note Bottom Sheet Fragment")
+        }
+
+        imgDelete.setOnClickListener {
+            selectedImagePath = ""
+            layoutImage.visibility = View.GONE
+
         }
 
         btnOk.setOnClickListener {
@@ -109,6 +158,19 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
         }
 
         btnCancel.setOnClickListener {
+            if (noteId != -1){
+                tvWebLink.visibility = View.VISIBLE
+                layoutWebUrl.visibility = View.GONE
+            }else{
+                layoutWebUrl.visibility = View.GONE
+            }
+
+        }
+
+        imgUrlDelete.setOnClickListener {
+            webLink = ""
+            tvWebLink.visibility = View.GONE
+            imgUrlDelete.visibility = View.GONE
             layoutWebUrl.visibility = View.GONE
         }
 
@@ -119,6 +181,32 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
 
     }
 
+
+    private fun updateNote(){
+        launch {
+
+            context?.let {
+                var notes = NotesDatabase.getDatabase(it).noteDao().getSpecificNote(noteId)
+
+                notes.title = etNoteTitle.text.toString()
+                notes.subTitle = etNoteSubTitle.text.toString()
+                notes.noteText = etNoteDesc.text.toString()
+                notes.dateTime = currentDate
+                notes.color = selectedColor
+                notes.imgPath = selectedImagePath
+                notes.webLink = webLink
+
+                NotesDatabase.getDatabase(it).noteDao().updateNote(notes)
+                etNoteTitle.setText("")
+                etNoteSubTitle.setText("")
+                etNoteDesc.setText("")
+                layoutImage.visibility = View.GONE
+                imgNote.visibility = View.GONE
+                tvWebLink.visibility = View.GONE
+                requireActivity().supportFragmentManager.popBackStack()
+            }
+        }
+    }
     private fun saveNote(){
 
         if (etNoteTitle.text.isNullOrEmpty()){
@@ -150,6 +238,7 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
                 etNoteTitle.setText("")
                 etNoteSubTitle.setText("")
                 etNoteDesc.setText("")
+                layoutImage.visibility = View.GONE
                 imgNote.visibility = View.GONE
                 tvWebLink.visibility = View.GONE
                 requireActivity().supportFragmentManager.popBackStack()
@@ -157,6 +246,16 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
         }
         }
 
+    }
+
+    private fun deleteNote(){
+
+        launch {
+            context?.let {
+                NotesDatabase.getDatabase(it).noteDao().deleteSpecificNote(noteId)
+                requireActivity().supportFragmentManager.popBackStack()
+            }
+        }
     }
 
     private fun checkWebUrl(){
@@ -227,9 +326,14 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
                 "WebUrl" ->{
                     layoutWebUrl.visibility = View.VISIBLE
                 }
+                "DeleteNote" -> {
+                    //delete note
+                    deleteNote()
+                }
 
 
                 else -> {
+                    layoutImage.visibility = View.GONE
                     imgNote.visibility = View.GONE
                     layoutWebUrl.visibility = View.GONE
                     selectedColor = p1.getStringExtra("selectedColor")!!
@@ -301,6 +405,7 @@ class CreateNoteFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,Ea
                         var bitmap = BitmapFactory.decodeStream(inputStream)
                         imgNote.setImageBitmap(bitmap)
                         imgNote.visibility = View.VISIBLE
+                        layoutImage.visibility = View.VISIBLE
 
                         selectedImagePath = getPathFromUri(selectedImageUrl)!!
                     }catch (e:Exception){
